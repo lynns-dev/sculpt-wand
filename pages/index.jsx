@@ -303,8 +303,8 @@ const heroBg = {
   position: 'relative', minHeight: '82vh', display: 'flex', alignItems: 'center',
   maxWidth: T.maxw, margin: '0 auto', padding: '120px 32px 80px', gap: 40, flexWrap: 'wrap',
 };
-const heroBlobA = { position: 'absolute', top: '-10%', right: '-8%', width: 420, height: 420, borderRadius: '50%', background: 'rgba(201,124,116,0.18)', filter: 'blur(10px)' };
-const heroBlobB = { position: 'absolute', bottom: '-15%', left: '-10%', width: 360, height: 360, borderRadius: '50%', background: 'rgba(244,217,210,0.55)', filter: 'blur(10px)' };
+const heroBlobA = { position: 'absolute', top: '-10%', right: '-8%', width: 420, height: 420, borderRadius: '50%', background: 'rgba(183,166,136,0.22)', filter: 'blur(10px)' };
+const heroBlobB = { position: 'absolute', bottom: '-15%', left: '-10%', width: 360, height: 360, borderRadius: '50%', background: 'rgba(235,226,208,0.6)', filter: 'blur(10px)' };
 const heroContent = { position: 'relative', flex: '1 1 420px', maxWidth: 560 };
 const heroH1 = { fontFamily: T.sans, fontWeight: 700, fontSize: 'clamp(34px,4.6vw,54px)', lineHeight: 1.12, marginBottom: 22, color: T.ink };
 const heroOfferPill = {
@@ -339,6 +339,6 @@ const faqBtn = { display: 'flex', justifyContent: 'space-between', alignItems: '
 const faqBody = { fontSize: 14, color: T.soft, lineHeight: 1.7, marginTop: 12, paddingRight: 30 };
 const buyGrid = { display: 'grid', gap: 28, marginTop: 48 };
 const buyCard = { background: T.white, border: `1px solid ${T.line}`, borderRadius: 24, padding: '32px 28px', textAlign: 'center', position: 'relative' };
-const buyCardHighlight = { border: `1.5px solid ${T.rose}`, boxShadow: '0 16px 40px rgba(201,124,116,0.18)' };
+const buyCardHighlight = { border: `1.5px solid ${T.rose}`, boxShadow: '0 16px 40px rgba(183,166,136,0.22)' };
 const buyBadge = { position: 'absolute', top: 18, right: 18, fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: T.white, background: T.roseDeep, padding: '6px 12px', borderRadius: 999 };
 const buyImgWrap = { display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 140 };

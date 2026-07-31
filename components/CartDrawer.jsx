@@ -57,7 +57,7 @@ export default function CartDrawer({
       <div
         onClick={onClose}
         style={{
-          position: 'fixed', inset: 0, background: 'rgba(21,17,13,0.4)', zIndex: 200,
+          position: 'fixed', inset: 0, background: 'rgba(17,17,17,0.4)', zIndex: 200,
           opacity: open ? 1 : 0, pointerEvents: open ? 'auto' : 'none', transition: 'opacity .3s',
         }}
       />

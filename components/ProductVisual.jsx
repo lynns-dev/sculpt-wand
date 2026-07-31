@@ -32,9 +32,9 @@ export default function ProductVisual({ id = 'sculpt-wand', width = 150, images,
   if (id === 'travel-pouch') {
     return (
       <svg width={width} viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <rect x="40" y="70" width="140" height="120" rx="18" fill="#F1ECE4" stroke="#171412" strokeWidth="2" />
-        <path d="M70 70 v-14 a40 40 0 0 1 80 0 v14" fill="none" stroke="#171412" strokeWidth="2" />
-        <circle cx="110" cy="130" r="4" fill="#171412" />
+        <rect x="40" y="70" width="140" height="120" rx="18" fill="#F5F0E6" stroke="#111111" strokeWidth="2" />
+        <path d="M70 70 v-14 a40 40 0 0 1 80 0 v14" fill="none" stroke="#111111" strokeWidth="2" />
+        <circle cx="110" cy="130" r="4" fill="#111111" />
       </svg>
     );
   }
@@ -43,12 +43,12 @@ export default function ProductVisual({ id = 'sculpt-wand', width = 150, images,
   return (
     <svg width={width} viewBox="0 0 240 300" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"
       style={{ filter: 'drop-shadow(0 18px 30px rgba(23,20,18,.14))' }}>
-      <rect x="70" y="0" width="240" height="240" rx="30" fill="#F1ECE4" transform="rotate(35 70 0)" opacity="0" />
+      <rect x="70" y="0" width="240" height="240" rx="30" fill="#F5F0E6" transform="rotate(35 70 0)" opacity="0" />
       <g transform="translate(120 150) rotate(-30)">
-        <rect x="-96" y="-26" width="192" height="52" rx="26" fill="#E7E0D5" stroke="#171412" strokeWidth="2" />
-        <circle cx="-60" cy="0" r="30" fill="#FAF8F5" stroke="#171412" strokeWidth="2" />
-        <circle cx="60" cy="0" r="30" fill="#FAF8F5" stroke="#171412" strokeWidth="2" />
-        <rect x="-14" y="-8" width="28" height="16" rx="8" fill="#171412" />
+        <rect x="-96" y="-26" width="192" height="52" rx="26" fill="#EBE2D0" stroke="#111111" strokeWidth="2" />
+        <circle cx="-60" cy="0" r="30" fill="#FFFFFF" stroke="#111111" strokeWidth="2" />
+        <circle cx="60" cy="0" r="30" fill="#FFFFFF" stroke="#111111" strokeWidth="2" />
+        <rect x="-14" y="-8" width="28" height="16" rx="8" fill="#111111" />
       </g>
     </svg>
   );
