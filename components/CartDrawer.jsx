@@ -4,8 +4,8 @@ import { T, S } from '../lib/theme';
 import ProductVisual from './ProductVisual';
 import { getProductById } from '../lib/products';
 
-const FREE_SHIP_AT = 50;
-const FREE_GIFT_AT = 70;
+const FREE_SHIP_AT = 89;
+const FREE_GIFT_AT = 99;
 
 export default function CartDrawer({
   cart, open, onClose, remove, setQty, total, add,
