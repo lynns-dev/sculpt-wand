@@ -5,7 +5,7 @@ import CartDrawer from '../components/CartDrawer';
 import ProductVisual from '../components/ProductVisual';
 import Marquee from '../components/Marquee';
 import Footer from '../components/Footer';
-import { PRODUCTS, getProductById } from '../lib/products';
+import { PRODUCTS, getProductById, getPercentOff } from '../lib/products';
 import { useCart } from '../lib/useCart';
 import { useAllReviews } from '../lib/useReviews';
 import { T, S } from '../lib/theme';
@@ -85,6 +85,9 @@ export default function HomePage() {
           <div style={heroBlobA} />
           <div style={heroBlobB} />
           <div style={heroContent}>
+            {single?.originalPrice && (
+              <span style={heroOfferPill}>{getPercentOff(single)}% Off — Today Only</span>
+            )}
             <span style={{ ...S.label, display: 'block', marginBottom: 20 }}>For women 40+ who want to feel like themselves again</span>
             <h1 style={heroH1}>Smoother-looking skin<br /><span style={S.it}>starts with five minutes.</span></h1>
             <p style={heroSub}>The Sculpt Wand is a handheld sculpting and massage tool built for a short, soothing at-home ritual — so you can feel more confident in your skin, on your own schedule.</p>
@@ -92,6 +95,13 @@ export default function HomePage() {
               <div style={hrate}>
                 <span style={{ letterSpacing: '2px', color: T.roseDeep }}>{'★'.repeat(Math.round(siteReviews.average))}{'☆'.repeat(5 - Math.round(siteReviews.average))}</span>
                 {' '}{siteReviews.average.toFixed(1)} · {siteReviews.count} review{siteReviews.count === 1 ? '' : 's'}
+              </div>
+            )}
+            {single?.originalPrice && (
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 18 }}>
+                <span style={{ fontSize: 18, color: T.soft, textDecoration: 'line-through' }}>${single.originalPrice}</span>
+                <span style={{ fontFamily: T.display, fontStyle: 'italic', fontWeight: 600, fontSize: 32, color: T.roseDeep }}>${single.price}</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: T.roseDeep }}>Save ${single.originalPrice - single.price}</span>
               </div>
             )}
             <div style={{ display: 'flex', gap: 22, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -236,16 +246,21 @@ export default function HomePage() {
           <div className="buy-grid" style={buyGrid}>
             {PRODUCTS.map((p) => (
               <div key={p.id} style={{ ...buyCard, ...(p.badge === 'Best Value' ? buyCardHighlight : {}) }}>
-                {p.badge && <span style={buyBadge}>{p.badge}</span>}
+                {p.originalPrice ? (
+                  <span style={buyBadge}>{getPercentOff(p)}% Off</span>
+                ) : p.badge && <span style={buyBadge}>{p.badge}</span>}
                 <div style={buyImgWrap}>
                   <ProductVisual id={p.id} images={p.images} alt={p.name} width={140} />
                 </div>
                 <h3 style={{ fontFamily: T.sans, fontWeight: 700, fontSize: 19, color: T.ink, marginTop: 18 }}>{p.name}</h3>
                 <p style={{ fontSize: 13, color: T.soft, margin: '8px 0 16px' }}>{p.description}</p>
-                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10, marginBottom: 18 }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: 10, marginBottom: 4 }}>
                   {p.originalPrice && <span style={{ fontSize: 14, color: T.soft, textDecoration: 'line-through' }}>${p.originalPrice}</span>}
                   <span style={{ fontFamily: T.display, fontStyle: 'italic', fontWeight: 600, fontSize: 30, color: T.roseDeep }}>${p.price}</span>
                 </div>
+                {p.originalPrice && (
+                  <p style={{ fontSize: 12, fontWeight: 700, color: T.roseDeep, margin: '0 0 18px' }}>You save ${p.originalPrice - p.price}</p>
+                )}
                 <button style={{ ...S.btnFill, width: '100%', justifyContent: 'center' }} onClick={() => c.add(p)}>Add to cart</button>
               </div>
             ))}
@@ -292,6 +307,11 @@ const heroBlobA = { position: 'absolute', top: '-10%', right: '-8%', width: 420,
 const heroBlobB = { position: 'absolute', bottom: '-15%', left: '-10%', width: 360, height: 360, borderRadius: '50%', background: 'rgba(244,217,210,0.55)', filter: 'blur(10px)' };
 const heroContent = { position: 'relative', flex: '1 1 420px', maxWidth: 560 };
 const heroH1 = { fontFamily: T.sans, fontWeight: 700, fontSize: 'clamp(34px,4.6vw,54px)', lineHeight: 1.12, marginBottom: 22, color: T.ink };
+const heroOfferPill = {
+  display: 'inline-flex', alignItems: 'center', height: 30, padding: '0 16px', marginBottom: 16,
+  background: T.roseDeep, color: T.white, borderRadius: 999,
+  fontFamily: T.sans, fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+};
 const heroSub = { fontSize: 16, color: T.soft, maxWidth: '46ch', marginBottom: 26, lineHeight: 1.7 };
 const hrate = { display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: T.soft, marginBottom: 24 };
 const heroVisual = {
