@@ -16,10 +16,10 @@ export default function Document() {
             __html: `
           *{margin:0;padding:0;box-sizing:border-box}
           html{scroll-behavior:smooth}
-          body{background:#FBF0EC;color:#3B2A2E;font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+          body{background:#F1ECE4;color:#171412;font-family:'Inter',system-ui,sans-serif;font-weight:400;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden}
           a{color:inherit;text-decoration:none}
           img{display:block;max-width:100%}
-          ::selection{background:#B15F58;color:#FFFDFB}
+          ::selection{background:#171412;color:#FAF8F5}
         `,
           }}
         />

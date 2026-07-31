@@ -187,7 +187,7 @@ export default function CartDrawer({
 
 const qtyBtn = {
   width: 26, height: 26, border: `1px solid ${T.line}`, background: 'transparent',
-  cursor: 'pointer', fontSize: 14, lineHeight: 1, color: '#15110D',
+  cursor: 'pointer', fontSize: 14, lineHeight: 1, color: T.ink,
 };
 
 const itemImg = {
