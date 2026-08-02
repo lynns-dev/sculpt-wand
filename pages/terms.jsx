@@ -52,14 +52,14 @@ export default function TermsOfService() {
 
       <PolicySection title="Intellectual property">
         <p>
-          All content on this site — including text, graphics, logos, and product photography — belongs to The
-          Sculpt Wand or its licensors and may not be copied or reused without permission.
+          All content on this site — including text, graphics, logos, and product photography — belongs to Sunbeam
+          Body or its licensors and may not be copied or reused without permission.
         </p>
       </PolicySection>
 
       <PolicySection title="Limitation of liability">
         <p>
-          Our products are provided "as is." To the fullest extent permitted by law, The Sculpt Wand is not liable
+          Our products are provided "as is." To the fullest extent permitted by law, Sunbeam Body is not liable
           for any indirect, incidental, or consequential damages arising from your use of this site or our
           products. Nothing here limits liability that cannot be limited under applicable law.
         </p>
@@ -75,7 +75,7 @@ export default function TermsOfService() {
       <PolicySection title="Contact">
         <p>
           Questions about these terms? Email{' '}
-          <a href="mailto:hello@thesculptwand.com" style={{ textDecoration: 'underline' }}>hello@thesculptwand.com</a>.
+          <a href="mailto:hello@sunbeambody.com" style={{ textDecoration: 'underline' }}>hello@sunbeambody.com</a>.
         </p>
       </PolicySection>
     </PolicyLayout>

@@ -19,7 +19,7 @@ export default function Header({ cartCount = 0, onCartClick, overlay = false, sc
     >
       <div style={styles.nav}>
         <Link href="/" style={{ ...styles.logoLink, ...styles.wordmark, color: linkColor }}>
-          The Sculpt Wand
+          Sunbeam Body
         </Link>
         <button onClick={onCartClick} style={{ ...styles.cartBtn, color: linkColor, borderColor: linkColor }} aria-label="Open cart">
           Cart{cartCount > 0 ? ` (${cartCount})` : ''}

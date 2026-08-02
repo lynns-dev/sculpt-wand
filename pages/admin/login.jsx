@@ -32,14 +32,14 @@ export default function AdminLogin() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: T.paper }}>
       <Head>
-        <title>Smells Iconic Admin</title>
+        <title>Sunbeam Body Admin</title>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.svg" />
         <meta name="theme-color" content={T.ink} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Smells Iconic Admin" />
+        <meta name="apple-mobile-web-app-title" content="Sunbeam Body Admin" />
       </Head>
       <form onSubmit={handleSubmit} style={{ width: 320, padding: 40, background: T.white, border: `1px solid ${T.line}` }}>
         <span style={{ fontFamily: T.display, fontWeight: 400, fontSize: 22, letterSpacing: '0.3em', display: 'block', marginBottom: 24, textAlign: 'center' }}>SMELLS — ICONIC</span>

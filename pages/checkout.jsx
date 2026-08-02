@@ -440,7 +440,7 @@ export default function CheckoutPage() {
     <div>
       <header style={topbar}>
         <Link href="/" style={{ ...S.wrap, display: 'flex', alignItems: 'center', justifyContent: 'center', height: 64, textDecoration: 'none' }}>
-          <span style={{ fontFamily: T.display, fontSize: 16, color: T.ink }}>The Sculpt Wand</span>
+          <span style={{ fontFamily: T.display, fontSize: 16, color: T.ink }}>Sunbeam Body</span>
         </Link>
       </header>
 

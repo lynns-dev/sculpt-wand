@@ -346,19 +346,19 @@ export default function AdminDashboard() {
   return (
     <div style={{ minHeight: '100vh', background: T.paper, padding: '32px 24px 80px' }}>
       <Head>
-        <title>Smells Iconic Admin</title>
+        <title>Sunbeam Body Admin</title>
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/icon-192.svg" />
         <meta name="theme-color" content={T.ink} />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Smells Iconic Admin" />
+        <meta name="apple-mobile-web-app-title" content="Sunbeam Body Admin" />
       </Head>
 
       <div style={{ maxWidth: 1000, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 32 }}>
-          <span style={{ fontFamily: T.display, fontWeight: 400, fontSize: 22, letterSpacing: '0.2em' }}>Smells Iconic admin</span>
+          <span style={{ fontFamily: T.display, fontWeight: 400, fontSize: 22, letterSpacing: '0.2em' }}>Sunbeam Body admin</span>
           <button onClick={handleLogout} style={S.btnOutline}>Sign out</button>
         </div>
 
