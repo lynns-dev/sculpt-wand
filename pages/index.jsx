@@ -138,7 +138,7 @@ export default function HomePage() {
               />
               <div style={ugcCaption}>
                 <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{v.caption}</p>
-                <p style={{ fontSize: 12, color: 'rgba(251,248,241,0.75)', margin: '2px 0 0' }}>{v.author}</p>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.75)', margin: '2px 0 0' }}>{v.author}</p>
               </div>
             </div>
           ))}

@@ -46,8 +46,8 @@ export default function ProductVisual({ id = 'sculpt-wand', width = 150, images,
       <rect x="70" y="0" width="240" height="240" rx="30" fill="#F1EEE0" transform="rotate(35 70 0)" opacity="0" />
       <g transform="translate(120 150) rotate(-30)">
         <rect x="-96" y="-26" width="192" height="52" rx="26" fill="#E3E2D2" stroke="#1C1B17" strokeWidth="2" />
-        <circle cx="-60" cy="0" r="30" fill="#FBF8F1" stroke="#1C1B17" strokeWidth="2" />
-        <circle cx="60" cy="0" r="30" fill="#FBF8F1" stroke="#1C1B17" strokeWidth="2" />
+        <circle cx="-60" cy="0" r="30" fill="#FFFFFF" stroke="#1C1B17" strokeWidth="2" />
+        <circle cx="60" cy="0" r="30" fill="#FFFFFF" stroke="#1C1B17" strokeWidth="2" />
         <rect x="-14" y="-8" width="28" height="16" rx="8" fill="#1C1B17" />
       </g>
     </svg>
