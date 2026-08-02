@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { T, S } from '../lib/theme';
 import ProductVisual from './ProductVisual';
-import { getProductById } from '../lib/products';
+import { getProductById, GIFT_WITH_PURCHASE } from '../lib/products';
 
 const FREE_SHIP_AT = 89;
 const FREE_GIFT_AT = 99;
@@ -45,9 +45,9 @@ export default function CartDrawer({
   const shipMarkerPct = (FREE_SHIP_AT / FREE_GIFT_AT) * 100;
   let progressMessage;
   if (total >= FREE_GIFT_AT) {
-    progressMessage = 'You’ve unlocked free shipping and a free scented tassel gift.';
+    progressMessage = `You’ve unlocked free shipping and a free ${GIFT_WITH_PURCHASE.name}.`;
   } else if (freeShipping) {
-    progressMessage = `Free shipping unlocked — add $${(FREE_GIFT_AT - total).toFixed(2)} more for a free scented tassel gift.`;
+    progressMessage = `Free shipping unlocked — add $${(FREE_GIFT_AT - total).toFixed(2)} more for a free ${GIFT_WITH_PURCHASE.name}.`;
   } else {
     progressMessage = `Add $${(FREE_SHIP_AT - total).toFixed(2)} more for free shipping.`;
   }
