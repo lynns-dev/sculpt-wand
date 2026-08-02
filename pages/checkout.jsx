@@ -9,7 +9,7 @@ import PayPalButton from '../components/PayPalButton';
 import GooglePayButton from '../components/GooglePayButton';
 import { useCart } from '../lib/useCart';
 import { GIFT_WITH_PURCHASE } from '../lib/products';
-import { tokenizeCard } from '../lib/qbPayments';
+import { attachCard, tokenizeCard } from '../lib/squarePayments';
 import { fbTrack, generateEventId } from '../lib/fbPixel';
 import { getStoredAttribution } from '../lib/attribution';
 import { getSessionId } from '../lib/session';
@@ -32,34 +32,6 @@ function LockIcon(props) {
       <path d="M8 11V7a4 4 0 1 1 8 0v4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
-}
-
-function QuestionIcon(props) {
-  return (
-    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" {...props}>
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="17" r="1" fill="currentColor" />
-    </svg>
-  );
-}
-
-// IIN-range brand detection — good enough to give the user visual
-// confirmation their card is recognized, not used for validation.
-function detectCardBrand(digits) {
-  if (/^4/.test(digits)) return 'visa';
-  if (/^5[1-5]/.test(digits) || /^2(2[2-9]\d|[3-6]\d{2}|7[01]\d|720)/.test(digits)) return 'mastercard';
-  if (/^3[47]/.test(digits)) return 'amex';
-  if (/^6(?:011|5)/.test(digits)) return 'discover';
-  return null;
-}
-
-function formatCardNumber(digits) {
-  if (/^3[47]/.test(digits)) {
-    // Amex: 4-6-5
-    return [digits.slice(0, 4), digits.slice(4, 10), digits.slice(10, 15)].filter(Boolean).join(' ');
-  }
-  return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
 }
 
 // Small, recognizable renderings of each network's real mark (not a
@@ -155,12 +127,6 @@ function CardBrandBadges() {
   );
 }
 
-function CardBrandIcon({ brand }) {
-  const b = CARD_BRANDS.find((x) => x.id === brand);
-  if (!b) return null;
-  return <b.Logo />;
-}
-
 function AddressFields({ value, onChange, idPrefix }) {
   const set = (field) => (e) => onChange({ ...value, [field]: e.target.value });
   const section = idPrefix === 'bill' ? 'billing' : 'shipping';
@@ -201,19 +167,9 @@ export default function CheckoutPage() {
   const [shipping, setShipping] = React.useState(emptyAddress);
   const [billingSame, setBillingSame] = React.useState(true);
   const [billing, setBilling] = React.useState(emptyAddress);
-  const [card, setCard] = React.useState({ number: '', expiry: '', cvc: '' });
   const [payMethod, setPayMethod] = React.useState('card');
-  const [cvcTipOpen, setCvcTipOpen] = React.useState(false);
-  const cvcTipRef = React.useRef(null);
-
-  React.useEffect(() => {
-    if (!cvcTipOpen) return;
-    const handler = (e) => {
-      if (cvcTipRef.current && !cvcTipRef.current.contains(e.target)) setCvcTipOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [cvcTipOpen]);
+  const [squareStatus, setSquareStatus] = React.useState('loading'); // loading | ready | error
+  const cardElRef = React.useRef(null);
   const [discountCode, setDiscountCode] = React.useState('');
   const [discountMessage, setDiscountMessage] = React.useState('');
   const [summaryOpen, setSummaryOpen] = React.useState(false);
@@ -271,7 +227,37 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated]);
 
-  const cardBrand = React.useMemo(() => detectCardBrand(card.number.replace(/\D/g, '')), [card.number]);
+  React.useEffect(() => {
+    if (payMethod !== 'card') return;
+    let cancelled = false;
+    setSquareStatus('loading');
+    attachCard('card-container', {
+      input: { fontSize: '14px', fontFamily: T.sans, color: T.ink, placeholderColor: T.soft },
+      '.input-container': { borderRadius: '10px', borderColor: T.line },
+      '.input-container.is-focus': { borderColor: T.roseDeep },
+      '.input-container.is-error': { borderColor: '#a13d2b' },
+    })
+      .then((card) => {
+        if (cancelled) {
+          card.destroy();
+          return;
+        }
+        cardElRef.current = card;
+        setSquareStatus('ready');
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error('Square card element failed to load:', err);
+        setSquareStatus('error');
+      });
+    return () => {
+      cancelled = true;
+      if (cardElRef.current) {
+        cardElRef.current.destroy();
+        cardElRef.current = null;
+      }
+    };
+  }, [payMethod]);
 
   const hasTassel = cart.some((i) => i.id === GIFT_WITH_PURCHASE.id);
   const tasselExpired = tasselSeconds <= 0;
@@ -366,25 +352,12 @@ export default function CheckoutPage() {
         return;
       }
 
-      const purchaseEventId = generateEventId();
-      const [expMonth, expYear] = card.expiry.split('/').map((s) => s.trim());
-      const billingAddress = billingSame ? shipping : billing;
-      const token = await tokenizeCard(
-        {
-          number: card.number,
-          expMonth,
-          expYear: expYear && expYear.length === 2 ? `20${expYear}` : expYear,
-          cvc: card.cvc,
-          name: `${billingAddress.firstName} ${billingAddress.lastName}`.trim(),
-          street: billingAddress.address,
-          city: billingAddress.city,
-          region: billingAddress.state,
-          postalCode: billingAddress.zip,
-        },
-        process.env.NEXT_PUBLIC_QB_ENVIRONMENT || 'sandbox'
-      );
+      if (!cardElRef.current) throw new Error('Payment form is still loading — please wait a moment and try again.');
 
-      const res = await fetch('/api/qb-checkout', {
+      const purchaseEventId = generateEventId();
+      const token = await tokenizeCard(cardElRef.current);
+
+      const res = await fetch('/api/square-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -396,7 +369,7 @@ export default function CheckoutPage() {
           billing: billingSame ? shipping : billing,
           eventId: purchaseEventId,
           url: window.location.href,
-          paymentMethod: CARD_BRANDS.find((b) => b.id === cardBrand)?.label || 'Card',
+          paymentMethod: 'Card',
           attribution: getStoredAttribution(),
         }),
       });
@@ -586,68 +559,27 @@ export default function CheckoutPage() {
               {payMethod === 'card' && (
                 <div style={{ marginTop: 14 }}>
                   <div style={{ position: 'relative' }}>
-                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: T.soft, display: 'flex' }}>
+                    <span style={{ position: 'absolute', left: 12, top: 14, color: T.soft, display: 'flex', zIndex: 1 }}>
                       <LockIcon />
                     </span>
-                    <input
-                      placeholder="Card number"
-                      value={card.number}
-                      onChange={(e) => setCard({ ...card, number: formatCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16)) })}
-                      style={{ ...input, paddingLeft: 34, paddingRight: cardBrand ? 70 : 14 }}
-                      inputMode="numeric"
-                      autoComplete="cc-number"
-                      required
+                    <div
+                      id="card-container"
+                      style={{
+                        ...input, height: 'auto', minHeight: 46, paddingLeft: 34, paddingTop: 8, paddingBottom: 8,
+                        display: 'flex', alignItems: 'center',
+                      }}
                     />
-                    {cardBrand && (
-                      <div style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)' }}>
-                        <CardBrandIcon brand={cardBrand} />
-                      </div>
+                    {squareStatus === 'loading' && (
+                      <span style={{ position: 'absolute', left: 34, top: '50%', transform: 'translateY(-50%)', fontSize: 13, color: T.soft, pointerEvents: 'none' }}>
+                        Loading secure card form…
+                      </span>
                     )}
                   </div>
-                  <div className="row-2" style={{ marginTop: 8 }}>
-                    <input
-                      placeholder="Expiration date (MM/YY)"
-                      value={card.expiry}
-                      onChange={(e) => {
-                        const digits = e.target.value.replace(/\D/g, '').slice(0, 4);
-                        const formatted = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
-                        setCard({ ...card, expiry: formatted });
-                      }}
-                      style={input}
-                      inputMode="numeric"
-                      maxLength={5}
-                      autoComplete="cc-exp"
-                      required
-                    />
-                    <div style={{ position: 'relative' }} ref={cvcTipRef}>
-                      <input
-                        placeholder="Security code"
-                        value={card.cvc}
-                        onChange={(e) => setCard({ ...card, cvc: e.target.value.replace(/\D/g, '').slice(0, 4) })}
-                        style={{ ...input, paddingRight: 34 }}
-                        type="password"
-                        inputMode="numeric"
-                        autoComplete="cc-csc"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setCvcTipOpen((o) => !o)}
-                        aria-label="What is the security code?"
-                        style={{
-                          position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)',
-                          color: T.soft, cursor: 'pointer', background: 'none', border: 'none', padding: 0, display: 'flex',
-                        }}
-                      >
-                        <QuestionIcon />
-                      </button>
-                      {cvcTipOpen && (
-                        <div style={cvcTooltip}>
-                          The 3-digit code on the back of your card (4 digits on the front for Amex).
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  {squareStatus === 'error' && (
+                    <p style={{ ...errorText, marginTop: 8 }}>
+                      Couldn’t load the card form. Please refresh and try again.
+                    </p>
+                  )}
                   <label style={checkboxLabel}>
                     <input type="checkbox" checked={billingSame} onChange={(e) => setBillingSame(e.target.checked)} />
                     Use shipping address as billing address
@@ -701,10 +633,10 @@ export default function CheckoutPage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (payMethod === 'card' && squareStatus !== 'ready')}
             style={{
               ...S.btnFill, width: '100%', justifyContent: 'center', marginTop: 20,
-              height: 58, fontSize: 13, opacity: submitting ? 0.6 : 1,
+              height: 58, fontSize: 13, opacity: submitting || (payMethod === 'card' && squareStatus !== 'ready') ? 0.6 : 1,
             }}
           >
             {submitting
@@ -719,7 +651,7 @@ export default function CheckoutPage() {
           </div>
           <p style={{ fontSize: 11, color: T.soft, textAlign: 'center', marginTop: 8 }}>
             {payMethod === 'card'
-              ? 'Payments securely processed by QuickBooks Payments (Intuit)'
+              ? 'Payments are securely encrypted and processed.'
               : `You’ll be redirected to complete payment with ${getAltPaymentMethod(payMethod)?.label}, then brought back here.`}
           </p>
         </form>
@@ -850,11 +782,6 @@ const tasselImgWrap = {
   border: `1px solid ${T.line}`, display: 'flex', alignItems: 'center', justifyContent: 'center',
 };
 const tasselTimer = { fontSize: 11, color: '#a13d2b', marginTop: 10, marginBottom: 0 };
-const cvcTooltip = {
-  position: 'absolute', bottom: 'calc(100% + 8px)', right: 0, width: 200,
-  background: T.ink, color: T.white, fontSize: 11, lineHeight: 1.4,
-  padding: '8px 10px', borderRadius: 4, zIndex: 5,
-};
 const shipMethod = {
   display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 14px',
   border: `1px solid ${T.ink}`, fontSize: 14,

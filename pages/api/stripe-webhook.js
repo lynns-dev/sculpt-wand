@@ -2,7 +2,7 @@
 // Pay, Klarna, Afterpay, Affirm). These are redirect-based — the customer
 // leaves to authorize on the provider's own site and may never come back —
 // so fulfillment can't happen synchronously from the checkout request the
-// way it does for QuickBooks/PayPal. This webhook is the source of truth:
+// way it does for Square/PayPal. This webhook is the source of truth:
 // only a real payment_intent.succeeded event creates an order record.
 //
 // Register this endpoint's URL (https://YOUR_DOMAIN/api/stripe-webhook) in

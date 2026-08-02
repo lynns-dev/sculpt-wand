@@ -1,8 +1,8 @@
-# Smells Iconic — E-commerce (Next.js + QuickBooks Payments + Stripe)
+# Smells Iconic — E-commerce (Next.js + Square + Stripe)
 
 Blush-and-cream storefront for Smells Iconic body mists. Next.js 14
 (Pages Router) with a custom, Shopify-style single-page checkout that
-charges cards via QuickBooks Payments, with Cash App Pay/Klarna/Afterpay/
+charges cards via Square, with Cash App Pay/Klarna/Afterpay/
 Affirm as backup "or choose another way to pay" options via Stripe —
 customers only ever see each method's own name, never "Stripe".
 
@@ -19,22 +19,21 @@ Placeholder graphics stand in for real product photography — see
 
    | Name | Value |
    |------|-------|
-   | `QB_CLIENT_ID` / `QB_CLIENT_SECRET` | app credentials from your Intuit Developer app (Payments enabled) |
-   | `QB_ENVIRONMENT` / `NEXT_PUBLIC_QB_ENVIRONMENT` | `sandbox` or `production` (keep both in sync) |
-   | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Vercel KV / Upstash Redis store, used to persist the QuickBooks refresh token |
+   | `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID` | Sandbox or Production access token + location ID from the Square Developer Dashboard |
+   | `SQUARE_ENVIRONMENT` / `NEXT_PUBLIC_SQUARE_ENVIRONMENT` | `sandbox` or `production` (keep both in sync) |
+   | `NEXT_PUBLIC_SQUARE_APP_ID` / `NEXT_PUBLIC_SQUARE_LOCATION_ID` | public app ID + location ID, used client-side to render Square's card form |
+   | `KV_REST_API_URL` / `KV_REST_API_TOKEN` | Vercel KV / Upstash Redis store, used by `/admin` (auth sessions) and other server-side stores |
    | `NEXT_PUBLIC_BASE_URL` | your deployed URL, e.g. `https://smells-iconic.vercel.app` |
    | `STRIPE_SECRET_KEY` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | API keys from your Stripe Dashboard, power the Cash App Pay/Klarna/Afterpay/Affirm options |
    | `STRIPE_WEBHOOK_SECRET` | signing secret for a webhook endpoint pointed at `/api/stripe-webhook`, subscribed to `payment_intent.succeeded` |
 
-The site builds and renders fully without QuickBooks or Stripe configured —
+The site builds and renders fully without Square or Stripe configured —
 only the final **Pay now**/"or choose another way to pay" step on `/checkout`
-needs them. Once the QuickBooks variables above are set, visit
-`/api/qb-auth/connect` once to authorize QuickBooks; after that,
-`lib/qbServerAuth.js` refreshes the access token automatically forever (no
-manual rotation). Test everything in `sandbox` first — going live in
-`production` additionally requires Intuit's separate Payments production
-approval (see `DEPLOYMENT.md`). See `DEPLOYMENT.md` for the full walkthrough,
-including the Stripe setup.
+needs them. Get Square credentials from the Square Developer Dashboard
+(developer.squareup.com/apps) — Sandbox credentials work immediately, while
+Production access tokens require Square to activate the account for live
+payments first. Test everything in `sandbox` first. See `DEPLOYMENT.md` for
+the full walkthrough, including the Stripe setup.
 
 ## Run locally
 
@@ -51,11 +50,8 @@ npm run dev
 - `pages/product/[id].jsx` — product detail (static-generated per product)
 - `pages/checkout.jsx` — custom single-page checkout (contact, delivery, payment, order summary)
 - `pages/success.jsx` — post-checkout thank-you
-- `pages/api/qb-checkout.js` — charges a card token via the QuickBooks Payments API
-- `pages/api/qb-auth/connect.js`, `pages/api/qb-auth/callback.js` — one-time OAuth authorization flow
-- `lib/qbPayments.js` — client-side card tokenization (direct call to Intuit's Payments Tokens REST endpoint)
-- `lib/qbServerAuth.js` — server-side access token, refreshed automatically before every charge
-- `lib/qbTokenStore.js` — persists the QuickBooks token pair in a KV store between requests
+- `pages/api/square-checkout.js` — charges a Square payment token via the Square Payments API
+- `lib/squarePayments.js` — client-side card tokenization via Square's Web Payments SDK (loads `square.js`, attaches a card element, tokenizes on submit)
 - `pages/api/stripe-payment-intent.js` — creates a Stripe PaymentIntent for whichever "or pay another way" method the customer picked
 - `pages/api/stripe-webhook.js` — the only thing that actually records an order for those methods, once Stripe confirms the redirect-based charge succeeded
 - `lib/altPaymentMethods.js` — the 4 backup methods (Cash App Pay, Klarna, Afterpay, Affirm) and their Stripe method types, shared by the checkout UI and API routes
@@ -67,14 +63,11 @@ npm run dev
 
 ## Notes before launch
 
-- Card numbers are tokenized in the browser (`lib/qbPayments.js`) before
-  submission — the server only ever sees a one-time token, not raw card data.
-- QuickBooks access tokens expire (~60 min); `lib/qbServerAuth.js` refreshes
-  them automatically before each charge, so no manual rotation is needed day
-  to day. The refresh token itself only needs re-authorizing (via
-  `/api/qb-auth/connect`) if it goes unused for 100+ days or is revoked.
-- **Production charges require a separate Intuit approval** beyond OAuth —
-  see the "Required before Production charges will work" section in
+- Card numbers are tokenized in the browser (`lib/squarePayments.js`, via
+  Square's Web Payments SDK) before submission — the server only ever sees
+  a one-time token, not raw card data.
+- **Square access tokens for production require Square's own account
+  activation** beyond just having Sandbox credentials — see Step 1 in
   `DEPLOYMENT.md`. Always confirm the full flow works in `sandbox` first.
 - **Test the Cash App Pay/Klarna/Afterpay/Affirm flows end-to-end in Stripe
   test mode before launch.** Each is a redirect to the provider's own

@@ -29,9 +29,9 @@ function loadGooglePayScript() {
 // create-order/capture-order pair PayPalButton uses.
 //
 // Uses PRODUCTION in a production build and TEST otherwise — deliberately
-// not a synced pair of env vars like NEXT_PUBLIC_QB_ENVIRONMENT/
-// QB_ENVIRONMENT were, since that pattern is exactly what caused silent
-// sandbox-mode charging earlier. Requires Google Pay to be enabled on the
+// not a synced pair of env vars like NEXT_PUBLIC_SQUARE_ENVIRONMENT/
+// SQUARE_ENVIRONMENT are, since that pattern is easy to get out of sync and
+// cause silent sandbox-mode charging. Requires Google Pay to be enabled on the
 // PayPal account; no domain-verification file needed (unlike Apple Pay).
 export default function GooglePayButton({ amount, items, url, disabled, onSuccess, onError }) {
   const containerRef = React.useRef(null);

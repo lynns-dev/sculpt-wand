@@ -1,6 +1,6 @@
 # Smells Iconic Full E-Commerce Site — Deployment Guide
 
-This is a Next.js e-commerce site with a full product catalog, detailed product pages, shopping cart, and a custom checkout page that charges cards directly via QuickBooks Payments (no Shopify, no hosted redirect). Built in Smells Iconic's blush-and-cream, internet-archive aesthetic.
+This is a Next.js e-commerce site with a full product catalog, detailed product pages, shopping cart, and a custom checkout page that charges cards directly via Square (no Shopify, no hosted redirect). Built in Smells Iconic's blush-and-cream, internet-archive aesthetic.
 
 ## What You Get
 
@@ -8,33 +8,24 @@ This is a Next.js e-commerce site with a full product catalog, detailed product 
 - **Product catalog page** with all Smells Iconic body mists
 - **Individual product detail pages** with full descriptions, scent notes, and product specifications
 - **Shopping cart** (persists across pages via localStorage, sticky sidebar)
-- **Custom single-page checkout** (`/checkout`, styled after Shopify's checkout) that charges QuickBooks Payments directly
+- **Custom single-page checkout** (`/checkout`, styled after Shopify's checkout) that charges Square directly
 - **Deployed to Vercel** (free, automatic scaling, HTTPS included)
 
 ---
 
-## Step 1: Set Up QuickBooks Payments
+## Step 1: Set Up Square
 
-1. Go to https://developer.intuit.com and sign in (or create an Intuit account).
-2. Create a new app → **QuickBooks Online and Payments**.
-3. On the app's **Payments** tab, enable QuickBooks Payments. This is tied to a merchant account — if you don't already have QuickBooks Payments active on your QuickBooks Online account, you'll need to complete Intuit's merchant underwriting first.
-4. Under **Keys & OAuth**, grab the **Client ID** and **Client Secret** for the Sandbox environment (use Production once you're ready to take real charges). These go in `QB_CLIENT_ID` / `QB_CLIENT_SECRET`.
-5. In that same **Keys & OAuth** section, add a redirect URI: `https://YOUR_DOMAIN/api/qb-auth/callback` (use your Vercel URL, or `http://localhost:3000/api/qb-auth/callback` for local testing).
-
-### ⚠️ Two non-obvious ways to get the Charges API to fail even with a valid OAuth connection
-
-Both of these were root-caused by direct testing against Intuit's sandbox and are easy to hit again if this integration is ever rebuilt or reconnected:
-
-1. **Development vs. Production credentials must match `QB_ENVIRONMENT`.** Intuit issues a completely separate Client ID/Secret pair per environment (Keys & Credentials → Development / Production tabs), each with its own Redirect URIs list (Settings → Redirect URIs → Development / Production tabs). Using a Production Client ID while `QB_ENVIRONMENT=sandbox` (or vice versa) produces an access token whose environment doesn't match the API base URL it's sent to — Intuit's gateway rejects it with an **empty-body 403** before the request ever reaches real charge logic. Fix: make sure `QB_CLIENT_ID`/`QB_CLIENT_SECRET` come from the same Development/Production tab as `QB_ENVIRONMENT`, and that the matching redirect URI is registered under that same tab.
-2. **Don't request `com.intuit.quickbooks.accounting` together with `com.intuit.quickbooks.payment`** in the same OAuth authorization. A combined-scope token consistently 401s (`AuthenticationFailed`) on the Payments Charges API even though it's otherwise valid — request `com.intuit.quickbooks.payment` alone (see `pages/api/qb-auth/connect.js`). This was confirmed by testing both variants directly against `sandbox.api.intuit.com/quickbooks/v4/payments/charges`.
-
-If charges still fail after both of the above are correct, the remaining possibility is Intuit's separate Payments production-access approval (business verification / security questionnaire, found under the app's **Payments** tab if applicable) — but rule out #1 and #2 first, since they're far more common and produce very similar-looking errors.
+1. Go to https://developer.squareup.com/apps and sign in (or create a Square account).
+2. Create a new application.
+3. On the **Credentials** tab (Sandbox sub-tab to start), grab the **Sandbox Access Token** and a **Sandbox Location ID** (Locations tab, or `https://connect.squareupsandbox.com/v2/locations` via the API). These go in `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID`.
+4. Grab the **Sandbox Application ID** too — that's `NEXT_PUBLIC_SQUARE_APP_ID`, and reuse the same location ID as `NEXT_PUBLIC_SQUARE_LOCATION_ID` (safe to expose client-side; it's not a secret).
+5. When you're ready to take real charges, switch to the **Production** sub-tab for a separate Application ID / Access Token / Location ID, and set `SQUARE_ENVIRONMENT` / `NEXT_PUBLIC_SQUARE_ENVIRONMENT` to `production`. **Production access requires Square to activate the account for live payments** (business verification, roughly analogous to Stripe/PayPal's own underwriting) — this is a common source of charges failing even with valid-looking credentials, so confirm everything works in `sandbox` first.
 
 ---
 
 ## Step 1B: Set Up Stripe (backup "or pay another way" options)
 
-QuickBooks Payments handles the card form. Below it, checkout also offers
+Square handles the card form. Below it, checkout also offers
 Cash App Pay, Klarna, Afterpay, and Affirm as radio-button alternatives —
 these are processed through Stripe, but the checkout UI never uses the word
 "Stripe" anywhere a customer can see it; each shows only under its own name.
@@ -55,7 +46,7 @@ these are processed through Stripe, but the checkout UI never uses the word
    - This webhook is not optional — it's the only place an order placed
      through one of these four methods actually gets recorded (see
      `pages/api/stripe-webhook.js` for why: these are redirect-based, so
-     fulfillment can't happen synchronously the way it does for QuickBooks).
+     fulfillment can't happen synchronously the way it does for Square).
 6. Test each method with Stripe's published test flows for that method
    (Stripe's docs for each payment method list a test scenario — there's no
    generic "test card number" equivalent for Klarna/Afterpay/Affirm since
@@ -76,14 +67,13 @@ these are processed through Stripe, but the checkout UI never uses the word
 4. Click "Deploy"
 5. After deployment, go to "Settings" → "Environment Variables"
 6. Add:
-   - `QB_CLIENT_ID` / `QB_CLIENT_SECRET`: from Step 1
-   - `QB_ENVIRONMENT` and `NEXT_PUBLIC_QB_ENVIRONMENT`: both `sandbox` (or both `production` once approved — see Step 1)
+   - `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID`: from Step 1
+   - `SQUARE_ENVIRONMENT`, `NEXT_PUBLIC_SQUARE_APP_ID`, `NEXT_PUBLIC_SQUARE_LOCATION_ID`, `NEXT_PUBLIC_SQUARE_ENVIRONMENT`: from Step 1, both environment vars `sandbox` (or both `production` once activated — see Step 1)
    - `KV_REST_API_URL` / `KV_REST_API_TOKEN`: from a KV store (Vercel Storage → Marketplace → Upstash, or a standalone Upstash Redis database — same REST API either way)
    - `NEXT_PUBLIC_BASE_URL`: your Vercel domain (e.g., `https://smells-iconic.vercel.app`)
    - `STRIPE_SECRET_KEY` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` / `STRIPE_WEBHOOK_SECRET`: from Step 1B
 7. Redeploy by going to "Deployments" → last deployment → "Redeploy"
-8. Visit `/api/qb-auth/connect` once to authorize QuickBooks (see Step 1)
-9. Point the Stripe webhook from Step 1B at this same deployed domain once you know it (Vercel gives you the URL after the first deploy — update the webhook endpoint URL in Stripe if you created it against a placeholder earlier)
+8. Point the Stripe webhook from Step 1B at this same deployed domain once you know it (Vercel gives you the URL after the first deploy — update the webhook endpoint URL in Stripe if you created it against a placeholder earlier)
 
 ### Option B: Deploy via Git
 
@@ -113,8 +103,8 @@ these are processed through Stripe, but the checkout UI never uses the word
 
 1. Go to your deployed domain
 2. Add a product to the cart and click "Checkout"
-3. In sandbox mode, use one of Intuit's [test cards](https://developer.intuit.com/app/developer/qbpayments/docs/develop/sandboxes/payments-test-cards)
-4. Check your QuickBooks Payments dashboard — the charge should appear
+3. In sandbox mode, use one of Square's [test card numbers](https://developer.squareup.com/docs/testing/test-values)
+4. Check your Square Sandbox Dashboard (Payments) — the charge should appear
 
 ---
 
@@ -147,16 +137,15 @@ To change them:
 ### Architecture
 - **Frontend**: Next.js React app (all pages)
 - **Cart state**: React Context (`lib/useCart.js`), persisted to `localStorage` so it survives navigation to `/checkout`
-- **Backend**: Vercel serverless functions at `/api/qb-checkout` (charges a card token via the QuickBooks Payments API) and `/api/qb-auth/connect` + `/api/qb-auth/callback` (one-time OAuth authorization)
-- **Payments**: QuickBooks Payments — card details are tokenized client-side (`lib/qbPayments.js`, a direct call to Intuit's Payments Tokens REST endpoint) before ever reaching the server
-- **Token refresh**: `lib/qbServerAuth.js` transparently refreshes the QuickBooks access token using a refresh token persisted in the KV store (`lib/qbTokenStore.js`) before every charge — no manual token rotation
+- **Backend**: Vercel serverless functions at `/api/square-checkout` (charges a card token via the Square Payments API)
+- **Payments**: Square — card details are tokenized client-side (`lib/squarePayments.js`, via Square's Web Payments SDK) before ever reaching the server
 - **Hosting**: Vercel (free tier handles all traffic)
 
 ---
 
 ## Security Notes
 
-- `QB_CLIENT_SECRET` and the KV-stored tokens live only in Vercel's environment variables / KV store (never in code)
+- `SQUARE_ACCESS_TOKEN` lives only in Vercel's environment variables (never in code)
 - Card numbers are tokenized in the browser before submission — the server only ever sees a one-time token, not raw card data
 - HTTPS is automatic (Vercel provides free SSL)
 
@@ -164,11 +153,9 @@ To change them:
 
 ## Troubleshooting
 
-**"QuickBooks Payments is not connected yet" error:**
-- Visit `/api/qb-auth/connect` to complete the one-time authorization
-
-**Charge fails with a 403, and the OAuth connection is valid:**
-- This is almost always the missing Payments production-access approval described in Step 1, not a bug — confirm the same flow works in `sandbox` first, then chase down that approval with Intuit for `production`
+**Charge fails and credentials look correct:**
+- Double check `SQUARE_ACCESS_TOKEN` / `SQUARE_LOCATION_ID` and `SQUARE_ENVIRONMENT` all come from the same Sandbox-or-Production tab in the Square Developer Dashboard — mixing a Sandbox token with `SQUARE_ENVIRONMENT=production` (or vice versa) will fail
+- For `production`, confirm the Square account has been activated for live payments (see Step 1) — this is the most common reason a charge fails even though the same flow works fine in `sandbox`
 
 **"KV_REST_API_URL / KV_REST_API_TOKEN are not set" error:**
 - Provision a KV store (Vercel Storage → Marketplace → Upstash, or a standalone Upstash Redis database) and add its REST URL/token to your environment variables
@@ -182,8 +169,7 @@ To change them:
 ## Next Steps
 
 1. Deploy this to Vercel
-2. Provision a KV store and add `QB_CLIENT_ID` / `QB_CLIENT_SECRET` / `KV_REST_API_URL` / `KV_REST_API_TOKEN` (Development/sandbox credentials to start — see Step 1)
-3. Visit `/api/qb-auth/connect` once to authorize QuickBooks, with `QB_ENVIRONMENT=sandbox`
-4. Test a full checkout with an Intuit sandbox test card
-5. When ready for real charges, swap to the Production Client ID/Secret + redirect URI, switch `QB_ENVIRONMENT` / `NEXT_PUBLIC_QB_ENVIRONMENT` to `production`, and re-run `/api/qb-auth/connect`
-6. Connect your domain
+2. Provision a KV store and add `KV_REST_API_URL` / `KV_REST_API_TOKEN`, plus Square's Sandbox credentials (`SQUARE_ACCESS_TOKEN`, `SQUARE_LOCATION_ID`, `NEXT_PUBLIC_SQUARE_APP_ID`, `NEXT_PUBLIC_SQUARE_LOCATION_ID`, both environment vars set to `sandbox` — see Step 1)
+3. Test a full checkout with a Square sandbox test card
+4. When ready for real charges, swap to the Production Application ID/Access Token/Location ID, switch `SQUARE_ENVIRONMENT` / `NEXT_PUBLIC_SQUARE_ENVIRONMENT` to `production`
+5. Connect your domain
