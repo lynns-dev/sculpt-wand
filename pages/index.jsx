@@ -43,6 +43,10 @@ const TESTIMONIALS = [
   { text: 'Simple to use, quiet, and it actually fits into my evening routine instead of becoming one more thing I never do.', author: 'Renee, 58' },
 ];
 
+const UGC_VIDEOS = [
+  { src: '/videos/ugc-confidence-ritual.mp4', author: 'Denise, 52', caption: 'My 5-minute nightly ritual' },
+];
+
 export default function HomePage() {
   const c = useCart();
   const single = getProductById('sculpt-wand');
@@ -111,6 +115,38 @@ export default function HomePage() {
           </div>
           <div style={heroVisual}>
             <ProductVisual id={single?.id} images={single?.images} alt={single?.name} width={220} />
+          </div>
+        </div>
+      </section>
+
+      {/* UGC VIDEO */}
+      <section style={{ ...band, paddingTop: 56, paddingBottom: 56 }}>
+        <div style={{ ...S.wrap, textAlign: 'center', marginBottom: 28 }}>
+          <p style={S.label}>Real women, real routines</p>
+          <h2 style={{ ...S.h2, marginTop: 12 }}>See it in <span style={S.it}>action.</span></h2>
+        </div>
+        <div className="ugc-scroll" style={ugcScroll}>
+          {UGC_VIDEOS.map((v, i) => (
+            <div key={i} style={ugcCard}>
+              <video
+                src={v.src}
+                autoPlay
+                muted
+                loop
+                playsInline
+                style={ugcVideo}
+              />
+              <div style={ugcCaption}>
+                <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{v.caption}</p>
+                <p style={{ fontSize: 12, color: 'rgba(251,248,241,0.75)', margin: '2px 0 0' }}>{v.author}</p>
+              </div>
+            </div>
+          ))}
+          <div style={{ ...ugcCard, ...ugcMoreCard }}>
+            <p style={{ ...S.label, marginBottom: 10 }}>More on the way</p>
+            <p style={{ fontSize: 14, color: T.soft, lineHeight: 1.6, maxWidth: '22ch' }}>
+              Real customer videos are added here as they come in.
+            </p>
           </div>
         </div>
       </section>
@@ -319,6 +355,23 @@ const heroVisual = {
   minHeight: 320,
 };
 const band = { padding: '72px 0' };
+const ugcScroll = {
+  display: 'flex', gap: 16, overflowX: 'auto', padding: '4px 32px 12px',
+  scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch',
+};
+const ugcCard = {
+  position: 'relative', flex: '0 0 auto', width: 220, height: 390, borderRadius: 22, overflow: 'hidden',
+  background: T.paper, border: `1px solid ${T.line}`, scrollSnapAlign: 'start',
+};
+const ugcVideo = { width: '100%', height: '100%', objectFit: 'cover', display: 'block' };
+const ugcCaption = {
+  position: 'absolute', left: 0, right: 0, bottom: 0, padding: '28px 16px 16px',
+  background: 'linear-gradient(180deg, transparent 0%, rgba(28,27,23,0.75) 100%)', color: T.white,
+};
+const ugcMoreCard = {
+  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+  textAlign: 'center', padding: '0 20px',
+};
 const featGrid = { display: 'grid', gap: 28, marginTop: 48 };
 const featCard = { background: T.white, border: `1px solid ${T.line}`, borderRadius: 20, padding: '28px 24px' };
 const featNum = { fontFamily: T.display, fontStyle: 'italic', fontSize: 26, color: T.rose, marginBottom: 10 };
